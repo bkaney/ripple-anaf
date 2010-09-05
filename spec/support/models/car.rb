@@ -8,6 +8,8 @@ class Car
   many :passengers  # linked, standard :key
   one :engine       # embedded
   many :seats       # embedded
+  many :wheels
 
   accepts_nested_attributes_for :driver, :passengers, :engine, :seats
+  accepts_nested_attributes_for :wheels, :reject_if => proc{|attrs| attrs[:diameter] < 12 }
 end

@@ -2,7 +2,12 @@ require 'ripple'
 module Ripple
   module NestedAttributes #:nodoc:
     extend ActiveSupport::Concern
- 
+
+    included do
+      class_inheritable_accessor :nested_attributes_options, :instance_writer => false
+      self.nested_attributes_options = {}
+    end
+    
     # = Nested Attributes
     #
     # This is similar to the `accepts_nested_attributes` functionality
@@ -67,20 +72,23 @@ module Ripple
     module ClassMethods
     
       def accepts_nested_attributes_for(*attr_names)
-
+        options = { :allow_destroy => false }
+        options.update(attr_names.extract_options!)
+        
         attr_names.each do |association_name|
           if association = self.associations[association_name]
+            nested_attributes_options[association_name.to_sym] = options
          
             class_eval %{
               def #{association_name}_attributes=(attributes)
                 assign_nested_attributes_for_#{association.type}_association(:#{association_name}, attributes)
               end
 
-              before_save :save_nested_attributes_for_#{association_name}
+              before_save :autosave_nested_attributes_for_#{association_name}
 
               private
 
-              def save_nested_attributes_for_#{association_name}
+              def autosave_nested_attributes_for_#{association_name}
                 save_nested_attributes_for_#{association.type}_association(:#{association_name}) if self.autosave[:#{association_name}]
               end
             }, __FILE__, __LINE__
@@ -113,6 +121,9 @@ module Ripple
 
       def assign_nested_attributes_for_one_association(association_name, attributes)
         association = self.class.associations[association_name]
+
+        return if reject_new_record?(association_name, attributes)
+        
         if association.embeddable?
           assign_nested_attributes_for_one_embedded_association(association_name, attributes)
         else
@@ -163,6 +174,9 @@ module Ripple
 
       def assign_nested_attributes_for_many_linked_association(association_name, attributes_collection)
         attributes_collection.each do |attributes|
+          
+          return if reject_new_record?(association_name, attributes)
+
           attributes = attributes.stringify_keys
 
           if attributes[key_attr.to_s].blank?
@@ -173,5 +187,19 @@ module Ripple
         end
       end
     end
+
+    def reject_new_record?(association_name, attributes)
+      call_reject_if(association_name, attributes)
+    end
+
+    def call_reject_if(association_name, attributes)
+      case callback = nested_attributes_options[association_name][:reject_if]
+      when Symbol
+        method(callback).arity == 0 ? send(callback) : send(callback, attributes)
+      when Proc
+        callback.call(attributes)
+      end
+    end
+
   end
 end

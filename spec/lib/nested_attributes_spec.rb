@@ -6,6 +6,7 @@ describe Ripple::NestedAttributes do
   require 'support/models/passenger'
   require 'support/models/engine'
   require 'support/models/seat'
+  require 'support/models/wheel'
 
   context "one :driver (link)" do
     subject { Car.new }
@@ -195,5 +196,16 @@ describe Ripple::NestedAttributes do
     end
   end
 
+  context ":reject_if" do
+    it "should not create a wheel" do
+      car = Car.new(:wheels_attributes => [ { :diameter => 10 } ])
+      car.wheels.should == []
+    end
 
+    it "should create a wheel" do
+      car = Car.new(:wheels_attributes => [ { :diameter => 16 } ])
+      car.wheels.size.should == 1
+      car.wheels.first.diameter.should == 16
+    end
+  end
 end
