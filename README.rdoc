@@ -28,7 +28,7 @@ Now, you can do things like this:
 
 And in your views you can use fields_for:
 
-    <%= form_for(@committee) do |f| %>
+    <%= form_for(@shipment) do |f| %>
       
       <%= f.text_field :identifier %>
 
