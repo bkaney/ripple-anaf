@@ -1,6 +1,43 @@
 = ripple-anaf
 
-Description goes here.
+This is similar to the `accepts_nested_attributes` functionality
+as found in AR.  This allows the use update attributes and create
+new child records through the parent.  It also allows the use of
+the `fields_for` form view helper, using a presenter pattern.
+
+To enable in the model, call the class method, using the same
+relationship as defined in the `one` or `many`.
+    
+    class Shipment
+      include Ripple::Document
+      property :identifier, String
+
+      one :box
+      many :addresses
+
+      accepts_nested_attributes_for :box, :addresses
+    end
+
+Now, you can do things like this:
+
+    Shipment.create(
+      :identifier => '1Z0001', 
+      :box_attributes => { :weight => 1.4 }, 
+      :addresses_attributes => [ { :street => "Main Street" } ] 
+    )
+
+And in your views you can use fields_for:
+
+    <%= form_for(@committee) do |f| %>
+      
+      <%= f.text_field :identifier %>
+
+      <%=  f.fields_for :box do |ff| %>
+        <%= ff.text_field :weight %>
+      <% end %>
+
+    <% end %>
+    
 
 == Note on Patches/Pull Requests
  
