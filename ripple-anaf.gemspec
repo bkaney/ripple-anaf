@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
      "lib/ripple-anaf/core_ext/hash.rb",
      "lib/ripple-anaf/document/key.rb",
      "lib/ripple-anaf/nested_attributes.rb",
+     "ripple-anaf.gemspec",
      "spec/lib/nested_attributes_spec.rb",
      "spec/spec_helper.rb",
      "spec/support/models/car.rb",
