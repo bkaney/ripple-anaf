@@ -41,12 +41,18 @@ And in your views you can use fields_for:
 
     <% end %>
    
+== Installation
+
+Currently in pre-release for testing.
+
+    gem install ripple-anaf --pre
+
 == Supported Features
 
- * Same DSL for linked and embedded documents (except embedded many)
- * :reject_if
- * :allow_destroy
- * :update_only (soon)
+* Same DSL for linked and embedded documents (except embedded many)
+* :reject_if
+* :allow_destroy
+* :update_only (soon)
 
 == Note on Patches/Pull Requests
  
