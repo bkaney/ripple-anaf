@@ -55,10 +55,10 @@ PLATFORMS
 
 DEPENDENCIES
   activemodel (= 3.0.0)
-  bundler
+  bundler (= 1.0.0)
   curb (> 0.6)
   jeweler
-  rake
+  rake (= 0.8.7)
   ripple (= 0.8.0)
   rspec (~> 2.0.0.beta.19)
-  ruby-debug19
+  ruby-debug19 (= 0.11.6)
