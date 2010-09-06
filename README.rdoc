@@ -15,8 +15,10 @@ relationship as defined in the `one` or `many`.
 
       one :box
       many :addresses
+      many :checkpoints
 
       accepts_nested_attributes_for :box, :addresses
+      accepts_nested_attributes_for :checkpoints, :allow_destroy => true, :reject_if => proc{|attrs| attrs['signed_off'].blank? }
     end
 
 Now, you can do things like this:
@@ -43,7 +45,7 @@ And in your views you can use fields_for:
 
  * Same DSL for linked and embedded documents (except embedded many)
  * :reject_if
- * :allow_delete (soon)
+ * :allow_destroy
  * :update_only (soon)
 
 == Note on Patches/Pull Requests

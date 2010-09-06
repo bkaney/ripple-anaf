@@ -208,4 +208,17 @@ describe Ripple::NestedAttributes do
       car.wheels.first.diameter.should == 16
     end
   end
+
+  context ":allow_delete" do
+    let(:wheel) { Wheel.create(:diameter => 17) }
+    subject { Car.create(:wheels => [ wheel ] ) }
+
+    it "should allow us to delete the wheel" do
+      subject.wheels_attributes = [ { :key => wheel.key, :_destroy => "1" } ]
+      subject.save
+      subject.wheels.should == []
+    end
+
+  end
+  
 end

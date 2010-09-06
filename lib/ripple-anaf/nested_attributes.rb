@@ -3,6 +3,9 @@ module Ripple
   module NestedAttributes #:nodoc:
     extend ActiveSupport::Concern
 
+    UNASSIGNABLE_KEYS = %w{ _destroy }
+    TRUE_VALUES = [ true, "true", 1, "1", "yes", "ok", "y" ]
+
     included do
       class_inheritable_accessor :nested_attributes_options, :instance_writer => false
       self.nested_attributes_options = {}
@@ -85,6 +88,7 @@ module Ripple
               end
 
               before_save :autosave_nested_attributes_for_#{association_name}
+              before_save :destroy_marked_for_destruction
 
               private
 
@@ -107,10 +111,12 @@ module Ripple
         @autosave_nested_attributes_for ||= {}
       end
 
+      def marked_for_destruction
+        @marked_for_destruction ||= {}
+      end
+
       private
-
-      UNASSIGNABLE_KEYS = %w{ }
-
+      
       def save_nested_attributes_for_one_association(association_name)
         send(association_name).save
       end
@@ -119,11 +125,19 @@ module Ripple
         send(association_name).map(&:save)
       end
 
+      def destroy_marked_for_destruction
+        self.marked_for_destruction.each_pair do |association_name, resources|
+          resources.map(&:destroy)
+          send(association_name).reload
+        end
+      end
+
+      def destroy_nested_many_association(association_name)
+        send(association_name).map(&:destroy)
+      end
+
       def assign_nested_attributes_for_one_association(association_name, attributes)
         association = self.class.associations[association_name]
-
-        return if reject_new_record?(association_name, attributes)
-        
         if association.embeddable?
           assign_nested_attributes_for_one_embedded_association(association_name, attributes)
         else
@@ -138,12 +152,13 @@ module Ripple
 
       def assign_nested_attributes_for_one_linked_association(association_name, attributes)
         attributes = attributes.stringify_keys
+        options = nested_attributes_options[association_name]
 
-        if attributes[key_attr.to_s].blank?
+        if attributes[key_attr.to_s].blank? && !reject_new_record?(association_name, attributes)
           send(association_name).build(attributes.except(*UNASSIGNABLE_KEYS))
         else
           if ((existing_record = send(association_name)).key.to_s == attributes[key_attr.to_s].to_s)
-            existing_record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
+            assign_to_or_mark_for_destruction(existing_record, attributes, association_name, options[:allow_destroy])
           else
             raise ArgumentError, "Attempting to update a child that isn't already associated to the parent."
           end
@@ -173,23 +188,33 @@ module Ripple
       end
 
       def assign_nested_attributes_for_many_linked_association(association_name, attributes_collection)
+        options = nested_attributes_options[association_name]
         attributes_collection.each do |attributes|
-          
-          return if reject_new_record?(association_name, attributes)
-
           attributes = attributes.stringify_keys
 
-          if attributes[key_attr.to_s].blank?
+          if attributes[key_attr.to_s].blank? && !reject_new_record?(association_name, attributes)
             send(association_name).build(attributes.except(*UNASSIGNABLE_KEYS))
           elsif existing_record = send(association_name).detect { |record| record.key.to_s == attributes[key_attr.to_s].to_s }
-            existing_record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
+            assign_to_or_mark_for_destruction(existing_record, attributes, association_name, options[:allow_destroy])
           end
         end
       end
     end
 
+    def assign_to_or_mark_for_destruction(record, attributes, association_name, allow_destroy)
+      if has_destroy_flag?(attributes) && allow_destroy
+        (self.marked_for_destruction[association_name] ||= []) << record
+      else
+        record.attributes = attributes.except(*UNASSIGNABLE_KEYS)
+      end
+    end
+    
+    def has_destroy_flag?(hash)
+      TRUE_VALUES.include?(hash.stringify_keys['_destroy'])
+    end
+
     def reject_new_record?(association_name, attributes)
-      call_reject_if(association_name, attributes)
+      has_destroy_flag?(attributes) || call_reject_if(association_name, attributes)
     end
 
     def call_reject_if(association_name, attributes)
@@ -203,4 +228,5 @@ module Ripple
     end
 
   end
+  
 end

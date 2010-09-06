@@ -11,5 +11,5 @@ class Car
   many :wheels
 
   accepts_nested_attributes_for :driver, :passengers, :engine, :seats
-  accepts_nested_attributes_for :wheels, :reject_if => proc{|attrs| attrs['diameter'] < 12 }
+  accepts_nested_attributes_for :wheels, :reject_if => proc{|attrs| attrs['diameter'] < 12 }, :allow_destroy => true
 end
