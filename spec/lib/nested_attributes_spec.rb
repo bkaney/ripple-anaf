@@ -142,7 +142,7 @@ describe Ripple::NestedAttributes do
     end
   end
 
-  context ":one engine (embedded)" do
+  context "one :engine (embedded)" do
     subject { Car.new }
 
     it { should respond_to(:engine_attributes=) }
@@ -193,6 +193,41 @@ describe Ripple::NestedAttributes do
         subject.engine.should_not_receive(:save)
         subject.save
       end
+    end
+  end
+
+  context "many :seats (embedded)" do
+    subject { Car.new }
+
+    it { should respond_to(:seats_attributes=) }
+
+    it "should not have passengers" do
+      subject.seats.should == []
+    end
+
+    describe "creation" do
+      subject { Car.new(:make => 'VW', 
+                        :model => 'Rabbit', 
+                        :seats_attributes => [ { :color => 'red' },
+                                               { :color => 'blue' },
+                                               { :color => 'brown' } ] ) }
+
+      it "should have 3 seats" do
+        subject.seats.size.should == 3
+      end
+      
+      it "should have 3 passengers with specified names" do
+        subject.seats.first.color.should == 'red'
+        subject.seats.second.color.should == 'blue'
+        subject.seats.third.color.should == 'brown'
+      end
+    
+      specify "replace/clobber" do
+        subject.seats_attributes = [ { :color => 'orange' } ]
+        subject.seats.size.should == 1
+        subject.seats.first.color.should == 'orange'
+      end
+
     end
   end
 
