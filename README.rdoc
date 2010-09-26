@@ -49,10 +49,9 @@ Currently in pre-release for testing.
 
 == Supported Features
 
-* Same DSL for linked and embedded documents (except embedded many)
+* Same DSL for linked and embedded documents
 * :reject_if
 * :allow_destroy
-* :update_only (soon)
 
 == Note on Patches/Pull Requests
  
