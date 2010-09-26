@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{ripple-anaf}
-  s.version = "0.8.0.beta1"
+  s.version = "0.8.0.beta2"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Brian Kaney"]
-  s.date = %q{2010-09-05}
+  s.date = %q{2010-09-25}
   s.description = %q{Adds the DSL for ANAF for Ripple, an ORM for Riak}
   s.email = %q{brian@vermonster.com}
   s.extra_rdoc_files = [
